@@ -17,12 +17,12 @@ for i = 2:1:size(tiffinfo,1)
 end
 tmax = size(tiffstack,3);
 
-%% initialize tiff stack for overlaid circle pictures 
+%%% initialize tiff stack for overlaid circle pictures 
 f = figure; imshow(tiffstack(:,:,1),'Border','tight'); axis image; colormap gray; caxis([0 255]);
 imwrite(frame2im(getframe(f)),[im(1:(end-4)) 'CircOver.tif']);
 f = figure; imshow(squeeze(tiffstack(:,:,2)),'Border','tight'); axis image; colormap gray; caxis([0 255]);
 imwrite(frame2im(getframe(f)),[im(1:(end-4)) 'CircOver.tif'],'WriteMode','append');
-%% Fit circles on each timestep
+%%% Fit circles on each timestep
 R = zeros(tmax,1);
 centroid = zeros(tmax,2);
 

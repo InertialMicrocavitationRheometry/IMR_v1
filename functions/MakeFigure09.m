@@ -1,6 +1,6 @@
-clear all; close all;
+clear all; close all; clc;
  
-fp = 'V:\data\jbestrad\FL_Cav_Data\160420\11kPa_PA\';
+fp = '/home/mrdz/codes/imr/testdata/160420/11kPa_PA/';
 fn1 = 'MakeFigure09a.mat';
 fn2 = 'MakeFigure09b.mat';
 expts = 6;
@@ -11,7 +11,7 @@ prp = [64 0 75]/255;
 org = [241 90 41]/255;
 
 for expt=expts
-    cd([fp num2str(expt)]);
+%     cd([fp num2str(expt)]);
     load(fn1,'mu_ooms');
     load(fn2,'G_ooms');
     
@@ -26,7 +26,7 @@ for expt=expts
     fig.Units = 'inches';
     fig.Position = [7 2 7 8];
     
-%% Plot for 9b is varying G
+%%%% Plot for 9b is varying G
 load(fn2);
     for i=1:(sG)
         for j=1 %1:sM

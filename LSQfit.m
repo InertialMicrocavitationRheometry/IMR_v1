@@ -1,5 +1,4 @@
-
-clear all; close all;
+clear; close all; clc;
 
 %stiff
 %fp = 'V:\data\jbestrad\FL_Cav_Data\160420\11kPa_PA\';
@@ -7,7 +6,7 @@ clear all; close all;
 % fn = '1101coarse_11kPa_PA_NHKV.mat';
 
 %soft
-fp = 'V:\data\jbestrad\FL_Cav_Data\160420\1pt3kPa_PA\';
+fp = '/home/mrdz/codes/imr/testdata/160420/1pt3kPa_PA/';
 fn = '170104mps_soft_sweep.mat';
 
 %water
@@ -115,7 +114,7 @@ for expt=expts
     mu_all(expt) = soln_mx{i,j,k}.mu;
     LSQ_all(expt) = LSQ{i,j,k};
     maxU_all(expt) = max(abs(soln_mx{i,j,k}.U));
-    T_all(expt,:) = soln_mx{i,j,k}.T;
+%     T_all(expt,:) = soln_mx{i,j,k}.T;
     
       figure(999);
       hold on;

@@ -1,46 +1,49 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%% INERTIAL MICROCAVITATION RHEOMETRY CODE %%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Authors:
 % Jon Estrada, jonathan_estrada@alumni.brown.edu
 % Brown Solid Mechanics, PhD '17
 % Carlos Barajas, carlobar@umich.edu
 % U-M Mechanical Engineering BS '16
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%% RUN PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Runfile for inertial microcavitation rheometry
 clc; clear; close all;
 warning('off','all')
-%%%%INSTRUCTIONS TO RUN THE CODE
-%%%%%%%%%%%%%%%%%%%%%%% RUN SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 1. ADD GENERAL FOLDER PATH FOR MATLAB
+
+%%%%%%%%%%%%%%%%%% FILE DIRECTORY SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% STEP 1. ADD GENERAL FOLDER PATH FOR MATLAB (EXAMPLE PROVIDED)
 addpath(genpath('/home/mrdz/codes/imr/'));
 
-% 2. ADD THE PATH TO DATA LOCATION (EXAMPLES PROVIDED)
-fp = '/home/mrdz/codes/imr/olddata/160420/11kPa_PA/';
-%fp = '/gpfs/data/cf5/jbestrad/FL_Cav_Data/160420/water/';
-%fp = '/gpfs/data/cf5/jbestrad/FL_Cav_Data/160511/collagen/1/';
-%fp = '/gpfs/data/cf5/jbestrad/FL_Cav_Data/170403/Collagen/';
-%fp = '/gpfs/data/cf5/jbestrad/FL_Cav_Data/170411/Collagen/20170302p1/';
+% STEP 2. ADD THE PATH TO DATA LOCATION (EXAMPLE PROVIDED)
+fp = '/home/mrdz/codes/imr/testdata/160420/11kPa_PA/';
 
-% 3. FILE LOADING AND SAVING. RofTdata.mat, contains vars Rnew and t
+% STEP 3. FILE LOADING AND SAVING. RofTdata.mat, contains vars Rnew and t
 load([fp 'RofTdata.mat']);  % Rnew has size [num_expts num_video_frames]
 savename = '170821_sweep';  % File name of saved data
 allRmax = max(Rnew,[],2);   % Creating variable for looping
 
-% 4. (OPTIONAL) CREATE A PARALLEL POOL
-% curCluster = parcluster('local');
-% curCluster.NumWorkers = 8;
-% saveProfile(curCluster);
-% pool = parpool(8);
+% STEP 4. CREATE A PARALLEL POOL (OPTIONAL)
+parallel = 0;               % 0: SERIAL CODE, 1: PARALLEL CODE
+if parallel == 1
+    curCluster = parcluster('local');
+    curCluster.NumWorkers = 4;
+    saveProfile(curCluster);
+    pool = parpool(4);
+end
 
-% 5. SET THE INDEX CHOICE OF EXPERIMENTS
+% STEP 5. SET THE INDEX CHOICE OF EXPERIMENTS (EXAMPLE PROVIDED)
 %expts = [12 14:19]; %water
 %expts = [2,3,4,5,8,10,14,15,16,18,20,23,24]; %collagen
 expts = 1;
 
 %%%%%%%%%%%%%%%%%%%%%%% NUMERICAL SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 6. SELECT THE MODELS:
+
+% STEP 6. SELECT THE MODELS (OPTIONS PROVIDED)
 %model = 'linkv';  (linear Kelvin-Voigt)
 %model = 'neoHook'; (neo-Hookean Kelvin-Voigt)
 %model = 'sls'; (Standard Linear Solid)
@@ -53,16 +56,17 @@ Tmgrad = 0;           % 0: Off means cold liquid assumption
 disptime = 0;         % 1 = Displays time to complete simulation
 Dim = 1;              % 1 = displays results in dimensional form
 comp = 1;             % 0 uses Rayleigh-Plesset, 1 uses Keller-Miksis
-% 7. SET NUMERICAL RESOLUTION
+% STEP 7. SET NUMERICAL RESOLUTION
 NT = 500;             % Mesh points in bubble, resolution should be >=500
 NTM = 10;             % Mesh points in the material, should be 10
 
-% 8. SET THE IN SIMULATION TIME
+% STEP 8. SET THE IN SIMULATION TIME
 tspan = 1.3E-4; 
 % tspan = 2.25E-4;
 
-%%%%%%%%%%%%%%%%%%%%%%% MATERIAL SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 9. SET THE RANGE OF G and MU (most conveniently done as powers of 10)
+%%%%%%%%%%%%%%%%%%%%%%% MATERIAL SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% STEP 9. SET THE RANGE OF G and MU (most conveniently done as powers of 10)
 G_ooms = 1:0.2:5;   
 %G_ooms = 3.0:0.1:4.0;      %soft PA 
 %G_ooms = 3.65:0.05:4.15    %stiff PA
@@ -74,14 +78,16 @@ mu_ooms = -1.4:0.05:-0.9;
 G1_ooms = inf;
 %Note, mu/G1 should go to 0 in the limit, so G1 for K-V models should be infinite
 
-% 8. SETTING MATERIAL CONSTANTS
+% STEP 8. SETTING MATERIAL CONSTANTS
 P_inf = 101325;             % (Pa) Atmospheric Pressure
 rho = 998.2;                % (kg/m^3) Material Density
 Uc = sqrt(P_inf/rho);       % (m/s) Characteristic velocity
                
-% 9. CHECK WORKSPACE IS CORRECT AND DATA IS AVAILABLE IN PATH ABOVE
+% STEP 9. CHECK WORKSPACE IS CORRECT AND DATA IS AVAILABLE IN PATH ABOVE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%% RUN IMR CODE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% 10. Run IMR
 for expt = expts                    % looping through the number of experiments
     mkdir([fp num2str(expt)]);      % making folders for each of the experiments
     cd([fp num2str(expt)]);         % going into each of the folders
@@ -89,32 +95,34 @@ for expt = expts                    % looping through the number of experiments
     %%%%%%%%%%%%%
     for k = 1:length(G1_ooms)
         for j= 1:length(mu_ooms)
-            for i=1:length(G_ooms) %parfor i=1:length(G_ooms)
+            parfor i=1:length(G_ooms)
+%             for i=1:length(G_ooms) 
                 
+             
                 % CREATING SOLUTION STRUCTURE
                 soln_mx{i,j,k} = struct('G',10^G_ooms(i),'mu',10^mu_ooms(j),'G1',10^G1_ooms(k),...
                     'tcs_star',[],'Rratios',[],'tmaxs_star',[],'t2',[],'R2',[],'U',[],'P',[],'J',[],'T',[],'C',[],...
-                    'Cdel',[],'tdel',[],'Tdel',[]);
-                
+                    'Cdel',[],'tdel',[],'Tdel',[]);            
+
+                % OBTAINING PROPERTIES TO DETERMINE EQUILIBRIUM RADIUS
                 G = soln_mx{i,j,k}.G;
                 mu = soln_mx{i,j,k}.mu;
-                G1 = soln_mx{i,j,k}.G1;
-                
-                [R0,t0] =  calcR0(Rnew(expt,:)*1E-6,t); %need to get the inital radius from a fit (R)
+                G1 = soln_mx{i,j,k}.G1; 
+                [R0,t0] =  calcR0(Rnew(expt,:)*1E-6,t); % Inital radius from a fit (R)
                 eqR = median(Rnew(expt,62:end))*10^-6;
                 R_eq = eqR/R0;
-                
-                % Bisection method to get initial partial pressure of the non-condensible gas
-                % Initial guess (purely empirical) and range (e.g. ~226 for
-                % 11kPa, 92 for 1.3kPa, 20.6 for water)
+                % Calculating limits of the equilibrium radius by the
+                % bisection method to get initial partial pressure of 
+                % the non-condensible gas. Initial guess (purely empirical) 
+                % and range (e.g. ~226 for 11kPa, 92 for 1.3kPa, 20.6 for water)
                 P_guess = 226;
                 P = [8, 400];
-                
                 R_eq_lims = [IMRCalc_Req(R0,Tgrad,Cgrad,P(1),G,G1,mu),...
                                 IMRCalc_Req(R0,Tgrad,Cgrad,P(2),G,G1,mu)];
                 R_eqf  = IMRCalc_Req(R0,Tgrad,Cgrad,P_guess,G,G1,mu);
-                error = 1;
                 
+                % WHILE LOOPING TO DETERMINE EQUILIBRIUM RADIUS
+                error = 1;
                 while abs(error) > 0.00001
                     if R_eq > R_eqf
                         P(1) = P_guess;
@@ -127,7 +135,8 @@ for expt = expts                    % looping through the number of experiments
                     R_eqf  = IMRCalc_Req(R0,Tgrad,Cgrad,P_guess,G,G1,mu);
                     error = abs(R_eq-R_eqf);
                 end
-                               
+
+                % WHILE LOOPING TO DETERMINE EQUILIBRIUM RADIUS
                 if strcmp(Pext_type,'IC')
                     Pext_Amp_Freq = [P_guess; 0];
                     %Pext_Amp_Freq = [226; 0]; % Tune first number to match equi radii
@@ -136,6 +145,8 @@ for expt = expts                    % looping through the number of experiments
                     Rmax = R0;
                     R0 = eqR;
                 end
+                
+                
                 tic
                 %Variables:
                 % t2 = simulation time

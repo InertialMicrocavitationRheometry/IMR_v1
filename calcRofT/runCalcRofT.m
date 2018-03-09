@@ -1,9 +1,9 @@
-clear all; close all;
+clear all; close all; clc;
 
 mag = 20; 
 
 %files = dir('PA1000_*.tif');
-files = dir('*.tif');
+files = dir('/home/mrdz/codes/imr/testdata/160420/11kPa_PA/CircOver/*.tif');
 mkdir('CircOver');
 um2px = 1.38; %calibration from image, in um2px
 
@@ -30,7 +30,7 @@ end
 save('RofTdata.mat','Rnew','t');
 
 %% plot the graphs
-close all;
+close all; clc;
 matfiles = dir('*.mat');
 load('RofTdata.mat');
 figure;
