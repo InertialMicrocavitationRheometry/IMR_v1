@@ -13,15 +13,19 @@ differential_images = tiffstack - double(rgb2gray(imread(im,1)));
 for i = 2:1:size(tiffinfo,1)
     temptiff = double(rgb2gray(imread(im,i)));
     tiffstack = cat(3,tiffstack,temptiff);
-    differential_images = cat(3,differential_images,temptiff-double(rgb2gray(imread(im,1))));
+    differential_images = ...
+        cat(3,differential_images,temptiff-double(rgb2gray(imread(im,1))));
 end
 tmax = size(tiffstack,3);
 
 %%% initialize tiff stack for overlaid circle pictures 
-f = figure; imshow(tiffstack(:,:,1),'Border','tight'); axis image; colormap gray; caxis([0 255]);
+f = figure; imshow(tiffstack(:,:,1),'Border','tight'); 
+axis image; colormap gray; caxis([0 255]);
 imwrite(frame2im(getframe(f)),[im(1:(end-4)) 'CircOver.tif']);
-f = figure; imshow(squeeze(tiffstack(:,:,2)),'Border','tight'); axis image; colormap gray; caxis([0 255]);
+f = figure; imshow(squeeze(tiffstack(:,:,2)),'Border','tight'); 
+axis image; colormap gray; caxis([0 255]);
 imwrite(frame2im(getframe(f)),[im(1:(end-4)) 'CircOver.tif'],'WriteMode','append');
+
 %%% Fit circles on each timestep
 R = zeros(tmax,1);
 centroid = zeros(tmax,2);
@@ -46,7 +50,8 @@ BW2(CC.PixelIdxList{idx}) = 1;
 if secondBiggestSize*2>biggestSize
     BW2(CC.PixelIdxList{numPixels==secondBiggestSize}) = 1;    
 end
-% 
+
+
 % figure;
 % %subplot(4,1,1);
 % imshow(uint8(tiffstack(:,:,a)),'Border','tight'); colormap gray; axis image;
