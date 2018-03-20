@@ -19,7 +19,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear; close all;
-warning('off','all')
+warning('off','all');
 
 %%%%%%%%%%%%%%%%%% FILE DIRECTORY SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -35,7 +35,7 @@ savename = '170821_sweep';  % File name of saved data
 allRmax = max(Rnew,[],2);   % Creating variable for looping
 
 % STEP 4. CREATE A PARALLEL POOL (OPTIONAL)
-parallel = 0;               % 0: SERIAL CODE, 1: PARALLEL CODE
+parallel = 1;               % 0: SERIAL CODE, 1: PARALLEL CODE
 if parallel == 1
     curCluster = parcluster('local');
     curCluster.NumWorkers = 4;
@@ -74,10 +74,12 @@ tspan = 1.3E-4;
 %%%%%%%%%%%%%%%%%%%%%%% MATERIAL SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % STEP 9. SET THE RANGE OF G and MU (most conveniently done as powers of 10)
-G_ooms = 1:0.2:5;   
+% G_ooms = 1:0.2:5;   
+G_ooms = 1:0.5:5;   
 %G_ooms = 3.0:0.1:4.0;      %soft PA 
 %G_ooms = 3.65:0.05:4.15    %stiff PA
-mu_ooms = -1.4:0.05:-0.9;
+%mu_ooms = -1.4:0.05:-0.9;
+mu_ooms = -1.4:0.1:-0.9;
 %mu_ooms = [-inf -4:0.25:-1.25 -1.05];
 %mu_ooms = [-1.65:0.05:-0.9];
 %mu_ooms = [-2.25:0.25:-0.5];
@@ -91,6 +93,7 @@ rho = 998.2;                % (kg/m^3) Material Density
 Uc = sqrt(P_inf/rho);       % (m/s) Characteristic velocity
                
 % STEP 9. CHECK WORKSPACE IS CORRECT AND DATA IS AVAILABLE IN PATH ABOVE
+addpath imr_code
 IMRmain
 
 %FOLLOWING PART OF CODE NEEDS TO BE CLEANED UP

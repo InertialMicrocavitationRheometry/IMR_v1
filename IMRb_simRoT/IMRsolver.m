@@ -1,6 +1,5 @@
 function [t,R,U,P,S,T,C,Tm,tdel,Tdel,Cdel] = IMRsolver(model,G,G1,mu,tspan,R0,NT,NTM, ...
     Pext_type,Pext_Amp_Freq,disptime,Tgrad,Tmgrad,Cgrad,Dim,comp)
-
 % Authors:
 % Carlos Barajas
 % carlobar@umich.edu
@@ -57,7 +56,7 @@ function [t,R,U,P,S,T,C,Tm,tdel,Tdel,Cdel] = IMRsolver(model,G,G1,mu,tspan,R0,NT
 %A. Prosperetti, L. A. Crum, and K.W. Commander, "Nonlinear bubble
 %dynamics," J.Acoust. Soc. Am. 83, 502-514 (1988).
 
-%A.T. Preston, "Modeling heat and mass transfer in bubbly cavitating
+%A. T. Preston, "Modeling heat and mass transfer in bubbly cavitating
 %flows and shockwaves in cavitating nozzles," Ph.D. thesis,
 %California Institute of Technology (2004).
 
@@ -141,7 +140,7 @@ if strcmp(Pext_type,'ga')
 end
 
 % Need to modify intial conditions for the Out-of-Equilibrium Rayleigh
-% Collpase:
+% Collapse:
 if strcmp(Pext_type,'IC')
     Pv = Pvsat(1*T_inf)/P_inf;
     P0_star = Pext_Amp_Freq(1)/101325 + Cgrad*Pvsat(1*T_inf)/P_inf;
@@ -153,8 +152,8 @@ if strcmp(Pext_type,'IC')
     [REq,~,~] = IMRCalc_Req(R0, Tgrad, Cgrad, Pext_Amp_Freq(1), G, G1, mu);
     %REq = 1; %removed 6/15/16 by Jon
     C0 = C0*ones(1,NT);
-    %U0_star = -1*(1-P0_star)/(C_star); %Intitial velocity due to shockwave
-    U0_star = 0;
+    U0_star = -1*(1-P0_star)/(C_star); %Intitial velocity due to shockwave
+%     U0_star = 0;
     if sls == 1 || linkv == 1
         S0 = -4/(3*Ca)*(1-REq^3);
     elseif nhzen == 1 || neoHook == 1
@@ -201,7 +200,7 @@ end
 %%
 %*************************************************************************
 % Nested function; ODE Solver calls to march governing equations in time
-% This function has acess to all parameters above
+% This function has access to all parameters above
 
     function dxdt = bubble(t,x)
         
@@ -472,7 +471,3 @@ end
     end
 
 end
-
-
-
-
