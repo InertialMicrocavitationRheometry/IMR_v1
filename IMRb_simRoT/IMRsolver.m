@@ -252,20 +252,21 @@ end
         Cdel = [Cdel C(end)];
         
         %Set external pressure
-        %         if (Pext_type == 'sn')
-        %             Pext =  -Pext_Amp_Freq(1)/P_inf*sin( Pext_Amp_Freq(2)*t*t0) ;
-        %             P_ext_prime = -Pext_Amp_Freq(2)*t0*Pext_Amp_Freq(1)/P_inf...
-        %                 *cos( Pext_Amp_Freq(2)*t*t0) ;
-        %         elseif (Pext_type == 'RC')
-        %             Pext = Pext_Amp_Freq(1)/P_inf ;
-        %             P_ext_prime = 0;
-        %         elseif (Pext_type == 'RG')
-        %             Pext = -Pext_Amp_Freq(1)/P_inf ;
-        %             P_ext_prime = 0;
-        %         elseif (Pext_type == 'ip')
-        %             Pext = -Pext_Amp_Freq(1)/P_inf*...
-        %                 (1-heaviside(t-Pext_Amp_Freq(2)/t0)) ;
-        %             P_ext_prime = 0;
+                if (Pext_type == 'sn')
+                    Pext =  -Pext_Amp_Freq(1)/P_inf*sin( Pext_Amp_Freq(2)*t*t0) ;
+                    P_ext_prime = -Pext_Amp_Freq(2)*t0*Pext_Amp_Freq(1)/P_inf...
+                        *cos( Pext_Amp_Freq(2)*t*t0) ;
+                elseif (Pext_type == 'RC')
+                    Pext = Pext_Amp_Freq(1)/P_inf ;
+                    P_ext_prime = 0;
+                elseif (Pext_type == 'RG')
+                    Pext = -Pext_Amp_Freq(1)/P_inf ;
+                    P_ext_prime = 0;
+                elseif (Pext_type == 'ip')
+                    Pext = -Pext_Amp_Freq(1)/P_inf*...
+                        (1-heaviside(t-Pext_Amp_Freq(2)/t0)) ;
+                    P_ext_prime = 0;
+                end
         if strcmp(Pext_type,'IC')
             Pext = 0;
             P_ext_prime = 0;
