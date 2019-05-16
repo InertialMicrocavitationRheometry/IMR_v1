@@ -16,7 +16,7 @@ for i = 1:length(files)
     im{i} = files(i).name;
 end
 
-
+Rnew = zeros(length(files),1);
 for tempk = [1:length(files)]
     
     tempk
@@ -205,15 +205,43 @@ for tempk = [1:length(files)]
 end
 
 deltat = 1/270000; deltax = 2.76e-6;
-t2=1:1:length(files); t2=t2'; t2=t2*deltat;
-R2 = Rnew*deltax;
-figure,  plot(t2,1e6*R2); hold on; plot(t2,1e6*R2,'bd')
+Rnew = Rnew*deltax;
+
+%t2=1:1:length(files);
+t=1:1:101;   Rnew=Rnew';
+figure,  plot(t, Rnew); hold on; plot(t, Rnew,'bd')
 set(gca,'fontsize',18)
- a=gca; a.TickLabelInterpreter = 'latex';
- xlabel('Time(s)','interpreter','latex'); ylabel('Bubble radius $R$($\mu$m)','interpreter','latex');
+a=gca; a.TickLabelInterpreter = 'latex';
+xlabel('Time(s)','interpreter','latex'); ylabel('Bubble radius $R$($\mu$m)','interpreter','latex');
 
+[RmaxAll,RmaxTimeLoc] = max(Rnew);
+try
+    [fitobj] = fit(t(RmaxTimeLoc-2:RmaxTimeLoc+2),Rnew(RmaxTimeLoc-2:RmaxTimeLoc+2),'poly2');
+    p = coeffvalues(fitobj); 
+    RmaxTimeLoc = -p(2)/2/p(1);
+    RmaxAll = (4*p(1)*p(3)-p(2)^2)/(4*p(1));
+catch
+    % Don't change RmaxAll and RmaxTimeLoc;
+end
 
-pause;
+KeepIndex = find(t>RmaxTimeLoc);
+t = [RmaxTimeLoc, t(KeepIndex)] ;
+Rnew = [RmaxAll, Rnew(KeepIndex)];
+
+t=t*deltat;
+t=t-t(1);
+
+fp = [folderNamePrefix,num2str(expt),'/'];
+
+    %Load the file RofTdata.mat, which contains vars Rnew and t
+    %Rnew has size [num_expts num_video_frames]
+    cd([fp]);
+    
+    filename = [fileNamePrefix,'.mat'];
+    save(filename,'t','Rnew');
+    cd('../../../../');
+    
+    pause;
 
 %% Make movie
 % files = dir('Img_*.tif');
