@@ -295,7 +295,8 @@ if whetherToSolveP == 0
         
         
         %%
-        [R0,t0] = calcR0(Rnew(1,:)*1E-6,t); %need to get the inital radius from a fit (R)
+         R0=Rfit(1); t0=0; 
+        %[R0,t0] = calcR0(Rnew(1,:)*1E-6,t); %need to get the inital radius from a fit (R)
         eqR = mean(Rnew(1, end-20:end )) *10^-6; % Solve for equilibirium R_inf
         R_eq = eqR/R0;
         
@@ -363,6 +364,7 @@ if whetherToSolveP == 0
         %R2_num = ppval(Rfit_pp,t2_num+t2Start);
         %figure; hold on; plot(t2_num+t2Start,R2_num );
         tspanEndIndex = min(find(t2'>t2_num(end)));
+        if isempty(tspanEndIndex), tspanEndIndex = length(t2); end
         figure; plot(t2(1:tspanEndIndex),Rfit(1:tspanEndIndex)); set(gca,'fontsize',18);  axis([0,tspan,0,R0]);
         xlabel('Time($s$)','interpreter','latex'); ylabel('Fitted bubble radius $R$(m)','interpreter','latex');
         a=gca; a.TickLabelInterpreter = 'latex';
@@ -617,7 +619,7 @@ if whetherToSolveP == 0
             end
             % title(['G=',num2str(10^G_ooms),' \mu=',num2str(10^mu_ooms),', \alpha=',num2str(alpha)],'FontWeight','Normal');
             title('Experiment data','FontWeight','Normal'); set(gca,'fontsize',18)
-            axis([0,tspan,0,2.5e-4]);
+            axis([0,tspan,0,1.12*R0]);
         end
         if PlotDefineTimetolListOrNot==1 && PlotExact==1
             figure; % plot(t,Rnew(1,:)*1e-6,'rs'); hold on;
@@ -626,7 +628,7 @@ if whetherToSolveP == 0
             grid off; grid; set(gca,'fontsize',18); grid minor;
             % title(['G=',num2str(10^G_ooms),' \mu=',num2str(10^mu_ooms),', \alpha=',num2str(alpha)],'FontWeight','Normal');
             title('Experiment data','FontWeight','Normal'); set(gca,'fontsize',18)
-            axis([0,tspan,0,2.5e-4]);
+            axis([0,tspan,0,1.12*R0]);
             for tempi = 1:PickNo
                 hold on; plot(tspanLocsMaxP(tempi)*ones(1,101), linspace(0,2.5e-4,101),'k--');
             end
@@ -765,8 +767,7 @@ if whetherToSolveP == 0
                     %for l = 1 % 1:length(lambda_nu_ooms) % for i=1:length(G_ooms)
                     
                     waitbar((k-1+(j-1+(i-1)*length(mu_ooms))*length(G1_ooms))/length(G1_ooms)/length(G_ooms)/length(mu_ooms)); % [i,j,k,l]
-
-                    
+ 
                     matPropVar = [G_ooms(i), mu_ooms(j)];
                     
                     [tempval1,tempval2] = funIMR2LSQErr(model,matPropVar,tspanLocsMaxP(1:PickNo),pksMaxR(1:PickNo),tspanLocsMaxR(1:PickNo+1),NT/10,NTM,...
@@ -779,7 +780,7 @@ if whetherToSolveP == 0
             end
         end
         
-        funMinLSQErr;
+        runMinLSQErr;
         
         
         matPropVar_best = [G_Peak,mu_Peak];

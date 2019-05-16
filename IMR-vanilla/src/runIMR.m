@@ -152,9 +152,13 @@ for expt = expts
                 matprop = struct('G',G,'mu',mu,'alpha',alpha,'lambda_nu',lambda_nu,'G1',G1);
                  
                 %%
-                R0 = Rfit(1); %[R0,t0] =  calcR0(Rnew(expt,:)*1E-6,t); %need to get the inital radius from a fit (R)
-                eqR = median(Rnew(expt, end-20:end)) *10^-6; % Solve for equilibirium R_inf
-                R_eq = eqR/R0;
+%                 R0 = Rfit(1); %[R0,t0] =  calcR0(Rnew(expt,:)*1E-6,t); %need to get the inital radius from a fit (R)
+%                 eqR = % median(Rnew(expt, end-20:end)) *10^-6; % Solve for equilibirium R_inf
+%                 R_eq = eqR/R0;
+ R0=Rfit(1); t0=0; 
+        %[R0,t0] = calcR0(Rnew(1,:)*1E-6,t); %need to get the inital radius from a fit (R)
+        eqR = mean(Rnew(1, end-20:end )) *10^-6; % Solve for equilibirium R_inf
+        R_eq = eqR/R0;
                 
                 %% Bisection method to get initial partial pressure of the non-condensible gas
                 P_guess = (P_inf+2*ST./eqR-Pvsat(T_inf)).*((eqR/R0).^3);
@@ -294,7 +298,7 @@ for expt = expts
     % save([savename '.mat'],'soln_mx','G_ooms','mu_ooms','Rnew','t');
     % cd(fp)
     
-    funMinLSQErr; % Find minimum LSQ error
+    runMinLSQErr; % Find minimum LSQ error
     
     matPropVar_best = [G_Peak,mu_Peak];
     
