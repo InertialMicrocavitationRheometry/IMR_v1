@@ -35,6 +35,10 @@ switch IMR_img_method
         fprintf('---------- Section 1.1 Load R-t curve from experiment images ---------- \n');
         videoFolderName = ['./data/IMR_JE_StiffPA_exp2/']; cd(videoFolderName);
         videoName = 'PAstiff_xy002.mp4'; LoadVideo; % Load video 
+        simNo = 1; TimeRes = 0; expts = [2]; expt=expts;
+        folderNamePrefix = ['./data/IMR_JE_PA/',num2str(simNo),'/'];
+        fileNamePrefix = ['PA',num2str(simNo),'_RofTdata_',num2str(TimeRes)];
+
         runCalcRofT; % Need experience and still art of work; 
         cd('../../'); % Back to main directory
         fprintf('---------- Section 1.1 Done ---------- \n\n');
@@ -45,9 +49,10 @@ switch IMR_img_method
         % ====== Time duration ======
         tspan = 12.25e-4; 
         % ====== Material model ======
-        G = 2.97e3; mu = 0.01; model = 'neoHook'; simNo = 4;
+        G = 2.97e3; mu = 0.101; model = 'neoHook'; simNo = 4;
         % G = 7.69e3; mu = 0.101; model = 'neoHook'; simNo = 4; % Stiff PA in Estrada. et al JMPS paper
         % G = 2.12e3; mu = 0.118; model = 'neoHook'; simNo = 4; % Soft PA in Estrada. et al JMPS paper
+        % G = 2.97e3; mu = 0.101; alpha = 0.1; model = 'fungexp'; simNo = 7; 
         
         % ====== Providing initial conditions ======
         %(1)Given bubble initial radius and equilibirum radius
@@ -73,12 +78,14 @@ end
 fprintf('---------- Section 1.3 R-t curve fitting ----------\n');
 % ====== Please the same parameters in Section 1.1 or 1.2 ======
 % ====== Curve fittings ======
-tspan = 12.25e-4;  % Time span 
-simNo = 4; TimeRes = 10; % "TimeRes" is the sampling rate you want to set over 270,000/s.
+tspan = 3.0e-4;  % Time span 
+simNo = 1; TimeRes = 0; % "TimeRes" is the sampling rate you want to set over 270,000/s.
 % E.g., "TimeRes = 10" means we sample R-t data points in the sampling rate of 10*270,000/s.
-expts = 1;  % You can change to expts = 1:1:N, where N is total exp #.
-folderNamePrefix = ['./data/numsim/',num2str(simNo),'/'];
-fileNamePrefix = ['numsim',num2str(simNo),'_RofTdata_',num2str(TimeRes)];
+expts = 2;  % You can change to expts = 1:1:N, where N is total exp #.
+% folderNamePrefix = ['./data/numsim/',num2str(simNo),'/'];
+% fileNamePrefix = ['numsim',num2str(simNo),'_RofTdata_',num2str(TimeRes)];
+folderNamePrefix = ['./data/IMR_JE_PA/',num2str(simNo),'/'];
+fileNamePrefix = ['PA',num2str(simNo),'_RofTdata_',num2str(TimeRes)];
 prompt = 'Do you want to fit ROfT curve? 0-Yes; 1-No. Input here: '; FitROfTOrNot = input(prompt);
 if FitROfTOrNot<1, FitROfTCurve; end
 fprintf('---------- Section 1.3 Done ----------\n\n');
@@ -92,10 +99,12 @@ fprintf('How many peaks of R-t curve to be used for fitting? \n');
 prompt = 'Input here: '; PickNo = input(prompt);
 
 % ====== Assign experiment index ======
-expts = [1]; TimeRes = 10; 
-simNo = 4; expNo = length(expts);  model='neoHook'; %
-folderNamePrefix = ['./data/numsim/',num2str(simNo),'/'];
-fileNamePrefix = ['numsim',num2str(simNo),'_RofTdata_',num2str(TimeRes)];
+expts = [2]; TimeRes = 0; 
+simNo = 1; expNo = length(expts);  model='neoHook'; %
+folderNamePrefix = ['./data/IMR_JE_PA/',num2str(simNo),'/'];
+fileNamePrefix = ['PA',num2str(simNo),'_RofTdata_',num2str(TimeRes)];
+% folderNamePrefix = ['./data/numsim/',num2str(simNo),'/'];
+% fileNamePrefix = ['numsim',num2str(simNo),'_RofTdata_',num2str(TimeRes)];
 % if exist('folderNamePrefix','var')==0, folderNamePrefix = ['./data/Natassa/']; end
 % if exist('fileNamePrefix','var')==0, fileNamePrefix = ['numsim',num2str(simNo),'_RofTdata_',num2str(TimeRes)]; end
         
@@ -113,8 +122,8 @@ switch IMRsolver_method
         %% Section 2.1 IMR solver with LSQ fitting
         fprintf('---------- Section 2.1 Fit material property using vanilla IMR LSQ fitting ---------- \n');
         % ====== Define LSQ fitting range ======
-        G_ooms = 3:0.2:4; % log10(Shear modulus)
-        mu_ooms = -3:0.25:-1.0; % log10(Viscosity)
+        G_ooms = log10(2000):0.1:log10(20000); % Shear modulus
+        mu_ooms = -2.0:0.1:-1.2; % Viscosity
         alpha_ooms = -Inf; lambda_nu_ooms = -Inf; G1_ooms = inf; % By default other parameters for Neo-Hookean KV material
         % ====== Solver ======
         runIMR; % Compute LSQ error matrix
@@ -136,15 +145,16 @@ switch IMRsolver_method
         %% Section 3.1 Decoupled IMR solver with LSQ fitting in time segmentss
         fprintf('---------- Section 3.1 Fit material property using decoupled IMR w/ LSQ fitting ---------- \n');
         % ====== Step 1: Solve {P,C,T} decoupled system ====== 
-        tspan = 2.25e-4;  
+        % tspan = 3.0e-7;
         fprintf('Do you want to solve first sub-system? 0-No; 1-Yes, accurate; 2-Yes, fast. \n');
         prompt = 'Input here: '; whetherToSolveP = input(prompt);
         DefineLocsMaxPOrNot = 0; DefineTimetolListOrNot = 0; PlotDefineTimetolListOrNot = 0;
-        if whetherToSolveP > 0, PRange = [80,200]; runIMR2; end
+        if whetherToSolveP > 0, PRange = [175,200]; runIMR2; end
         
         % ====== Step 2: Solve {R} decoupled system ======
-        G_ooms = log10(2100):0.01:log10(4000); % Shear modulus
-        mu_ooms = -2.5:0.01:-1.5; % Viscosity
+        G_ooms = log10(2000):0.1:log10(12000); % Shear modulus
+        mu_ooms = -2.0:0.1:-1.2; % Viscosity
+        G1_ooms = Inf;
         % Solver 
         whetherToSolveP = 0; DefineLocsMaxPOrNot = 0; DefineTimetolListOrNot = 1; PlotDefineTimetolListOrNot = 0;
         if PlotDefineTimetolListOrNot == 1, matPropVar_best = [log10(275), log10(0.003)]; end
@@ -156,7 +166,6 @@ switch IMRsolver_method
         % Only correct for cold surrounding hydrogel assumption
         fprintf('---------- Section 3.2 Fit material property using decoupled IMR w/ Nelder-Mead method ---------- \n');
         % ====== Step 1: Solve {P,C,T} decoupled system ====== 
-        tspan = 2.25e-4;  
         fprintf('Do you want to solve first sub-system? 0-No; 1-Yes, accurate; 2-Yes, fast. \n');
         prompt = 'Input here: '; whetherToSolveP = input(prompt);
         DefineLocsMaxPOrNot = 0; DefineTimetolListOrNot = 0; PlotDefineTimetolListOrNot = 0;
@@ -170,7 +179,7 @@ switch IMRsolver_method
 
         whetherToSolveP = 0; DefineLocsMaxPOrNot = 1; DefineTimetolListOrNot = 1; PlotDefineTimetolListOrNot = 0;
         if PlotDefineTimetolListOrNot == 1, matPropVar_best = [log10(3948), log10(0.021146)]; end
-        NelderMead_TolX = 1e-7; runIMR2_NelderMead;
+        NelderMead_TolX = 1e-6; runIMR2_NelderMead;
         fprintf('---------- Section 3.2 Done ---------- \n\n');
  
     otherwise
