@@ -84,15 +84,18 @@ P_inf = Pmt(19); T_inf = Pmt(20); C_star = Pmt(21); De = Pmt(22); rho = Pmt(23);
 %****************************************
 
 % Material Choice
-neoHook = 0;
-fung = 0;
-nhzen = 0;
-sls = 0;
-linkv = 0;
+neoHook = 0; nhzen = 0; sls = 0; linkv = 0;
+fung = 0; fung2 = 0; fungexp = 0; fungnlvis = 0;
 if strcmp(model,'neoHook') == 1
     neoHook = 1;
 elseif strcmp(model,'fung') == 1
     fung = 1;
+elseif strcmp(model,'fung2') == 1
+    fung2 = 1;
+elseif strcmp(model,'fungexp') == 1
+    fungexp = 1;
+elseif strcmp(model,'fungnlvis') == 1
+    fungnlvis = 1;
 elseif strcmp(model,'nhzen') == 1
     nhzen = 1;
 elseif strcmp(model,'sls') == 1
@@ -166,8 +169,7 @@ if strcmp(Pext_type,'IC')
     if REq == 0
         [REq,~,~] = IMRCalc_Req(R0, Tgrad, Cgrad, Pext_Amp_Freq(1), G, G1, mu);
     end
-    %REq
-     
+        
     %REq = 1; %removed 6/15/16 by Jon
     C0 = C0*ones(1,NT);
     %U0_star = -1*(1-P0_star)/(C_star); %Intitial velocity due to shockwave
@@ -176,9 +178,19 @@ if strcmp(Pext_type,'IC')
         S0 = -4/(3*Ca)*(1-REq^3);
     elseif nhzen == 1 || neoHook == 1
         S0 = -1/(2*Ca)*(5-REq^4-4*REq);
-    elseif fung == 1
+    elseif fung == 1 || fungnlvis == 1
         S0 = -(1-3*alpha)*(5 - 4*REq - REq^4)/(2*Ca) - ...
             2*alpha*(-27/40 - 1/8*REq^8 - 1/5*REq^5 -1*REq^2 + 2/REq)/(Ca);
+    elseif fung2 == 1
+        S0 = 2*(1-3*alpha+4.5*alpha^2)*(-5/4 + 1*REq + 1/4*REq^4)/(Ca) + ...
+             2*(27/40*alpha-221/90*alpha^2 + alpha^2/24*REq^12 + alpha^2/18*REq^9 + (alpha-3*alpha^2)/8*REq^8 + ... )
+             2*alpha^2/6*REq^6 + (alpha-3*alpha^2)/5*REq^5 + 2*alpha^2/3*REq^3 + (2*alpha-6*alpha^2)/2*REq^2 - ...
+             2*alpha^2*log(1/REq) - (2*alpha-6*alpha^2)/REq - 2/3*alpha^2/REq^3)/(Ca);
+    elseif fungexp == 1
+        tempbeta = linspace(1/REq,1,1e5);
+        tempS = 2*(tempbeta.^-5 + tempbeta.^-2) .* exp(alpha*(tempbeta.^-4+2*tempbeta.^2-3))/(Ca);
+        % figure, plot(tempbeta,tempS);  
+        S0 = (trapz(tempbeta,tempS));
     end
     
 end
@@ -199,8 +211,8 @@ X0 = reshape(X0,length(X0),1);
 %[X] = ode5(@bubble,linspace(0,tspan_star,1e4), X0);
 options = odeset('RelTol',IMRsolver_RelTolX);
 [t,X] = ode23tb(@bubble,[0 tspan_star], X0, options);
- %figure,plot(t,X(:,1))
-%  format long; mean(X(end-20:end,1))
+% figure,plot(t,X(:,1))
+% format long; mean(X(end-20:end,1))
 
 R = X(:,1); % Bubble wall Radius
 U = X(:,2); % Bubble wall velocity
@@ -420,7 +432,7 @@ end
                 Sdot =  -2*U*(1/R^2 + 1/R^5)/Ca + 4/Re*U^2/R^2;
             end
             
-        elseif fung == 1
+        elseif fung == 1 || fungnlvis == 1
             if  strcmp(Pext_type,'IC')
                 Rst = R/REq;
                 % ====== JY!!! for Fung model ======
@@ -430,7 +442,7 @@ end
                     2*alpha*(-27/40 - 1/8/Rst^8 - 1/5/Rst^5 -1/Rst^2 + 2*Rst)/(Ca) - 4/Re*U/R;
                 Sdot = -2*U/R*(1-3*alpha)*(1/Rst + 1/Rst^4)/Ca - ...
                      2*alpha*U/R*(1/Rst^8 + 1/Rst^5 + 2/Rst^2 + 2*Rst)/(Ca) + 4/Re*U^2/R^2; 
-                %JY!!! "- 4/Re*udot/R" is added finally: Sdot = Sdot - SdotA*udot/R; % JY!!! Pay attention to here! 
+                %JY!!! "- 4/Re*udot/R" is added later: Sdot = Sdot - SdotA*udot/R; % JY!!! Pay attention to here! 
             else
                 disp('Not finished in non-IC case for Fung model!')
             end
@@ -454,25 +466,37 @@ end
                 % 
                 % Sdot = -2*U/R*(1-3*alpha)*(1/Rst + 1/Rst^4)/Ca - ...
                 %      2*alpha*U/R*(1/Rst^8 + 1/Rst^5 + 2/Rst^2 + 2*Rst)/(Ca) + 4/Re*U^2/R^2; 
-                
+        elseif fung2 == 1 
+            if  strcmp(Pext_type,'IC')
+                Rst = R/REq;
                 % ******** JY!!! Second order Fung model approx ******
-                % S = 2*(1-3*alpha+4.5*alpha^2)*(-5/4 + 1/Rst + 1/4/Rst^4)/(Ca) + ...
-                %     2*(27/40*alpha-221/90*alpha^2 + alpha^2/24/Rst^12 + alpha^2/18/Rst^9 + (alpha-3*alpha^2)/8/Rst^8 + ... )
-                %     2*alpha^2/6/Rst^6 + (alpha-3*alpha^2)/5/Rst^5 + 2*alpha^2/3/Rst^3 + (2*alpha-6*alpha^2)/2/Rst^2 - ...
-                %     2*alpha^2*log(Rst) - (2*alpha-6*alpha^2)*Rst - 2/3*alpha^2*Rst^3)/(Ca) - ...
-                %       4/Re*U/R;
-                % Sdot = 2*U/R*(1-3*alpha+4.5*alpha^2)*(-1/Rst-1/Rst^4)/(Ca) + ...
-                %     2*U/R*(-alpha^2/2/Rst^12 - alpha^2/2/Rst^9 - (alpha-3*alpha^2)/Rst^8 ...
-                %     -2*alpha^2/Rst^6 - (alpha-3*alpha^2)/Rst^5 - 2*alpha^2/Rst^3 - (2*alpha-6*alpha^2)/Rst^2 ...
-                %     -2*alpha^2 - (2*alpha-6*alpha^2)*Rst - 2*alpha^2*Rst^3)/(Ca) + 4/Re*U^2/R^2;
-
+                S = 2*(1-3*alpha+4.5*alpha^2)*(-5/4 + 1/Rst + 1/4/Rst^4)/(Ca) + ...
+                    2*(27/40*alpha-221/90*alpha^2 + alpha^2/24/Rst^12 + alpha^2/18/Rst^9 + (alpha-3*alpha^2)/8/Rst^8 + ... 
+                    2*alpha^2/6/Rst^6 + (alpha-3*alpha^2)/5/Rst^5 + 2*alpha^2/3/Rst^3 + (2*alpha-6*alpha^2)/2/Rst^2 - ...
+                    2*alpha^2*log(Rst) - (2*alpha-6*alpha^2)*Rst - 2/3*alpha^2*Rst^3)/(Ca) - ...
+                      4/Re*U/R;
+                Sdot = 2*U/R*(1-3*alpha+4.5*alpha^2)*(-1/Rst-1/Rst^4)/(Ca) + ...
+                    2*U/R*(-alpha^2/2/Rst^12 - alpha^2/2/Rst^9 - (alpha-3*alpha^2)/Rst^8 ...
+                    -2*alpha^2/Rst^6 - (alpha-3*alpha^2)/Rst^5 - 2*alpha^2/Rst^3 - (2*alpha-6*alpha^2)/Rst^2 ...
+                    -2*alpha^2 - (2*alpha-6*alpha^2)*Rst - 2*alpha^2*Rst^3)/(Ca) + 4/Re*U^2/R^2;
+                %JY!!! "- 4/Re*udot/R" is added later: Sdot = Sdot - SdotA*udot/R;
+            else
+                disp('Not finished in non-IC case for Fung2 model!')
+            end
+            
+        elseif fungexp == 1
+            if  strcmp(Pext_type,'IC')
+                Rst = R/REq;
                 % ******** JY!!! The following original Fung model codes don't work. ********
-                % tempbeta = linspace(Rst,1,100);
-                % tempS = -2*(tempbeta.^-5 + tempbeta.^-2) .* exp(alpha*(tempbeta.^-4+2*tempbeta.^2-3))/(Ca);
-                % S = trapz(tempbeta,tempS) - 4/Re*U/R; 
-                % S = sum( (1-Rst)/(length(tempbeta)-1) .* tempS );
-                % Sdot = 2*U/REq*(Rst^5 + Rst^2)*exp(alpha*(Rst^(-4)+2*Rst^2-3))/(Ca) + ...
-                %           4/Re*U^2/R^2;
+                tempbeta = linspace(Rst,1,1e5);
+                tempS = 2*(tempbeta.^-5 + tempbeta.^-2) .* exp(alpha*(tempbeta.^-4+2*tempbeta.^2-3))/(Ca);
+                S = (trapz(tempbeta,tempS)) - 4/Re*U/R; 
+                Sdot = -2*U/REq*(Rst^-5 + Rst^-2)*exp(alpha*(Rst^(-4)+2*Rst^2-3))/(Ca) + ...
+                          4/Re*U^2/R^2;
+            else
+                disp('Not finished in non-IC case for Fung2 model!')
+            end
+            
             
         elseif sls == 1
             if  strcmp(Pext_type,'IC')
@@ -481,6 +505,7 @@ end
             else
                 Sdot = -S/De - 4*(1-1/R^3)/(3*Ca*De) - 4/(Re*De)*U/R - 4*U/(Ca*R);
             end
+            
         elseif nhzen == 1
             if  strcmp(Pext_type, 'IC')
                 Rst = R/REq;
@@ -517,20 +542,36 @@ end
             SdotA = 0;
         else
             % Keller-Miksis equation
-            if linkv==1 || neoHook==1 || fung==1
+            if linkv==1 || neoHook==1 || fung==1 || fung2==1 || fungexp==1 || fungnlvis==1
                 SdotA = 4/Re;
-            elseif sls==1 || nhzen==1
+            elseif sls==1 || nhzen==1 
                 SdotA = 0;
             end
-            udot = ((1+U/C_star)...
+            %if fungexp==0
+                udot = ((1+U/C_star)...
                 *(P  + abs(1-Cgrad)*Pv -1/(We*R) + S - 1 - Pext)  ...
                 + R/C_star*(pdot+ U/(We*R^2) + Sdot -P_ext_prime ) ...
                 - 1.5*(1-U/(3*C_star))*U^2)/((1-U/C_star)*R);%+JdotA/(C_star));
+          
+            %elseif fungexp==1
+            %    part1 = Sdot; 
+            %    part2 = ((1+U/C_star)...
+            %    *(P  + abs(1-Cgrad)*Pv -1/(We*R) + S - 1 - Pext)  ...
+            %    + R/C_star*(pdot+ U/(We*R^2) + 0 -P_ext_prime ) ...
+            %    - 1.5*(1-U/(3*C_star))*U^2)/((1-U/C_star)*R);
+            %    Sdot = (1+4/Re/C_star)^(-1) * (part1-4/Re/R*part2);
+            %    udot = (1+4/Re/C_star)^(-1) * (part2+R/C_star*part1);
+            %end
             
         end
         % ****************************************
         % ====== Keep viscosity the same ======
-        Sdot = Sdot - SdotA*udot/R; % JY!!! Pay attention to here! 
+        if  fungnlvis==1
+            Sdot = Sdot - SdotA/lambda_nu * ((3.4641016)^(lambda_nu-1)) * ((abs(udot)/R)^(lambda_nu));
+        else
+            Sdot = Sdot - SdotA*udot/R; % JY!!! Pay attention to here! 
+        end
+        
         % ====== Change viscosity ======
 %         temprdot = U * ( (2./(1-zeta) -1 )*Lv + 1 );
 %         tempr0dot = (tempr.^2.*temprdot - R^2*U)./(tempr0.^2);
