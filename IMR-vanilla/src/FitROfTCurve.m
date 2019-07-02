@@ -89,8 +89,8 @@ for tempi = 1:length(expts)
     set(gca,'fontsize',18); a=gca; a.TickLabelInterpreter = 'latex';
 
     t2IndexStart = min(find(t2>t0)); t2IndexEnd = length(t2);
-    t2Start = t2(t2IndexStart); t2End = t2(t2IndexEnd);
-    t2 = t2(t2IndexStart:t2IndexEnd);
+    t2Start = t2(t2IndexStart)-t2(1); t2End = t2(t2IndexEnd)-t2(1);
+    t2 = t2(t2IndexStart:t2IndexEnd)-t2(1);
     Rfit = Rfit(t2IndexStart:t2IndexEnd);
     d1Rfit = d1Rfit(t2IndexStart:t2IndexEnd);
     d2Rfit = d2Rfit(t2IndexStart:t2IndexEnd);
@@ -106,8 +106,7 @@ for tempi = 1:length(expts)
     cd('../../../../');
     % cd('/Users/yangjin/Documents/MATLAB/Franck/IMR_code');
     %cd('E:\Jin\Franck\IMR-master');
-
-    pause;
+ 
 
 end
 

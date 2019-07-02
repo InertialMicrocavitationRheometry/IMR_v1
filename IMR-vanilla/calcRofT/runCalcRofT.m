@@ -205,10 +205,10 @@ for tempk = [1:length(files)]
 end
 
 deltat = 1/270000; deltax = 2.76e-6;
-Rnew = Rnew*deltax;
+%Rnew = Rnew*deltax;
 
 %t2=1:1:length(files);
-t=1:1:101;   Rnew=Rnew';
+t=1:1:101;  % Rnew=Rnew';
 figure,  plot(t, Rnew); hold on; plot(t, Rnew,'bd')
 set(gca,'fontsize',18)
 a=gca; a.TickLabelInterpreter = 'latex';

@@ -362,7 +362,8 @@ for tempk = 1:length(expts)
     %R2_num = ppval(Rfit_pp,t2_num+t2Start); 
     %figure; hold on; plot(t2_num+t2Start,R2_num );
     tspanEndIndex = min(find(t2'>t2_num(end)));
-    figure; plot(t2(1:tspanEndIndex),Rfit(1:tspanEndIndex)); set(gca,'fontsize',18);  axis([0,tspan,0,R0]);
+    if isempty(tspanEndIndex), tspanEndIndex = length(t2); end
+    figure; plot(t2(1:tspanEndIndex),Rfit(1:tspanEndIndex)); set(gca,'fontsize',18);  axis([0,tspan,0,max(Rfit)]);
     xlabel('Time($s$)','interpreter','latex'); ylabel('Fitted bubble radius $R$(m)','interpreter','latex');
     a=gca; a.TickLabelInterpreter = 'latex';
 
@@ -617,7 +618,7 @@ for tempk = 1:length(expts)
                 end
                 % title(['G=',num2str(10^G_ooms),' \mu=',num2str(10^mu_ooms),', \alpha=',num2str(alpha)],'FontWeight','Normal');
                 title('Experiment data','FontWeight','Normal'); set(gca,'fontsize',18)
-                axis([0,tspan,0,2.5e-4]);
+                axis([0,tspan,0,1.12*R0]);
             end
             
             
@@ -749,7 +750,7 @@ for tempk = 1:length(expts)
                 grid off; grid; set(gca,'fontsize',18); grid minor;
                 % title(['G=',num2str(10^G_ooms),' \mu=',num2str(10^mu_ooms),', \alpha=',num2str(alpha)],'FontWeight','Normal');
                 title('Experiment data','FontWeight','Normal'); set(gca,'fontsize',18)
-                axis([0,tspan,0,2.5e-4]);
+                axis([0,tspan,0,1.12*R0]);
                 for tempi = 1:PickNo
                     hold on; plot(tspanLocsMaxP(tempi)*ones(1,101), linspace(0,2.5e-4,101),'k--');
                 end

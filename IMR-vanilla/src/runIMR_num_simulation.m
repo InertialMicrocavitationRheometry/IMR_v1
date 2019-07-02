@@ -106,7 +106,7 @@ for expt = 1:length(P_guessList)
             model, matprop, tspan, R0, NT, NTM, Pext_type, Pext_Amp_Freq, ...
             disptime, Tgrad, Tmgrad, Cgrad, Dim, comp, REqOld,IMRsolver_RelTolX);
        
-        REqNew = mean(R2(end-20:end))/R0;
+        % REqNew = mean(R2(end-20:end))/R0;
         % =============================
     % end
     % toc
@@ -146,9 +146,15 @@ for expt = 1:length(P_guessList)
     % t = t2'; t=t(1:20:length(t)); Rnew = R2(1:20:length(R2))'; filename = ['numsim',num2str(simNo),'_RofTdata_5']; save([filename '.mat'], 't', 'Rnew');
 
     % Run FitRtCurve
-    
-    file_name = ['numsim',num2str(simNo),'_NHKV_Exact_G',num2str(G),'_mu',num2str(mu),'_NT',num2str(NT),'_logRelTol',num2str(-log10(IMRsolver_RelTolX))];
-    save([file_name '.mat'],'t2','R2','C','T','P','matprop');
+    if simNo == 4
+        file_name = ['numsim',num2str(simNo),'_Exact_G',num2str(G),'_mu',num2str(mu),'_NT',num2str(NT),'_logRelTol',num2str(-log10(IMRsolver_RelTolX))];
+    elseif simNo == 5 
+        file_name = ['numsim',num2str(simNo),'_Exact_G',num2str(G),'_alpha',num2str(alpha),'_mu',num2str(mu),'_NT',num2str(NT),'_logRelTol',num2str(-log10(IMRsolver_RelTolX))];
+    elseif simNo == 7
+        file_name = ['numsim',num2str(simNo),'_Exact_G',num2str(G),'_alpha',num2str(alpha),'_mu',num2str(mu),'_lambda-nu',num2str(lambda_nu),'_NT',num2str(NT),'_logRelTol',num2str(-log10(IMRsolver_RelTolX))];
+    end
+        
+    save([file_name '.mat'],'t2','R2','R2dot','C','T','P','matprop');
 
     cd('../../../../');
      
